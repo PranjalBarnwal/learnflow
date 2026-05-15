@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  EDUCATOR
+  LEARNER
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(LEARNER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  courses      Course[]      // as educator
+  enrollments  Enrollment[]
+  progress     Progress[]
+  quizAttempts QuizAttempt[]
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  title        String
+  description  String
+  thumbnailUrl String?
+  category     String
+  difficulty   Difficulty   @default(BEGINNER)
+  published    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  educatorId   String
+  educator     User         @relation(fields: [educatorId], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+  enrollments  Enrollment[]
+
+  // Performance indexes
+  @@index([published])
+  @@index([category])
+  @@index([difficulty])
+  @@index([educatorId])
+  @@index([published, category, difficulty]) // Composite for filters
+  @@index([createdAt])
+}
+
+model Lesson {
+  id         String     @id @default(cuid())
+  title      String
+  body       String     @db.Text
+  videoUrl   String?
+  orderIndex Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  courseId   String
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress   Progress[]
+  quiz       Quiz?
+
+  // Performance indexes
+  @@index([courseId])
+  @@index([courseId, orderIndex]) // For ordered queries
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  enrolledAt DateTime @default(now())
+  userId     String
+  courseId   String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  // Performance indexes
+  @@index([userId])
+  @@index([courseId])
+  @@index([enrolledAt])
+}
+
+model Progress {
+  id          String   @id @default(cuid())
+  completedAt DateTime @default(now())
+  userId      String
+  lessonId    String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  // Performance indexes
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model Quiz {
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  lessonId  String        @unique
+  lesson    Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts  QuizAttempt[]
+
+  // Performance indexes
+  @@index([lessonId])
+}
+
+model Question {
+  id           String   @id @default(cuid())
+  text         String
+  options      String[]
+  correctIndex Int
+  quizId       String
+  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  score       Int
+  answers     Int[]
+  attemptedAt DateTime @default(now())
+  userId      String
+  quizId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  // Performance indexes
+  @@index([userId])
+  @@index([quizId])
+  @@index([attemptedAt])
+}
