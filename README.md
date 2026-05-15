@@ -26,7 +26,7 @@ A modern, full-stack Learning Management System (LMS) built for the **House of E
 |---------|-------------|
 | **Course Management** | Full CRUD — create, edit, publish, and delete courses |
 | **Lesson Builder** | Rich text editor with video embedding (YouTube, Loom) via embed URL parsing |
-| **AI Quiz Generator** | Enter a **topic** and choose **difficulty** (Easy/Medium/Hard) — AI generates 5 multiple-choice questions. No transcript dependency. |
+| **AI Quiz Generator** | Enter a **topic** and choose **difficulty** (Easy/Medium/Hard) — AI generates 5 multiple-choice questions. |
 | **Quiz Editor** | Review, edit, add/remove questions, and change correct answers before saving |
 | **Drag & Drop** | Reorder lessons with intuitive drag-and-drop using @dnd-kit |
 | **Analytics** | Dashboard with total courses, students, and lessons at a glance |
@@ -59,10 +59,6 @@ The original transcript-based quiz generation has been **replaced** with a more 
 2. **Selects difficulty level** — Easy (fundamentals), Medium (applied knowledge), or Hard (critical thinking)
 3. **AI generates 5 multiple-choice questions** via Groq's Llama 3.3 70B model
 4. **Educator reviews, edits, and saves** — the quiz editor supports modifying questions, options, and correct answers
-
-**Before (removed):** Analyzed YouTube video transcripts → unreliable on serverless (Vercel) due to YouTube blocking server IP ranges
-
-**Now:** Prompt-based generation → works consistently on any deployment. No video URL needed.
 
 ---
 
@@ -266,17 +262,6 @@ All mutations are handled via **Next.js Server Actions** (`'use server'`), elimi
 | `actions/enrollment.actions.ts` | Enroll in course |
 | `actions/progress.actions.ts` | Mark lesson complete |
 
----
-
-## 🧪 Test Data
-
-```bash
-# Seed 1000 test courses for performance testing
-node scripts/seed-courses.js
-
-# Clear all data
-node scripts/clear-database.js
-```
 
 ---
 
